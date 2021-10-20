@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect, useReducer, useCallback, Reducer } from 'react';
+import { useEffect, useReducer } from 'react';
 import Table from './Table';
 
 interface ReducerState {
