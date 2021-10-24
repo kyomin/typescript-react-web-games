@@ -58,7 +58,6 @@ class Gugudan extends Component<{}, State> {
 	};
 
 	render() {
-		console.log('class component render');
 		return (
 			<>
 				<div>

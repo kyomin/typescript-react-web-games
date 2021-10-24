@@ -4,7 +4,6 @@ import Ball from './Ball';
 
 // state 안 쓰는 함수는 외부로 뺀다.
 function getWinNumbers() {
-	console.log('getWinNumbers');
 	const candidates = Array(45)
 		.fill(null)
 		.map((v, i) => i + 1);
@@ -71,8 +70,6 @@ const LottoGenerator = () => {
   */
 	const onClickRedo = useCallback(() => {
 		// 초기화
-		console.log('onClickRedo');
-		console.log('winNumbers : ', winNumbers);
 		setWinNumbers(getWinNumbers());
 		setWinBalls([]);
 		setBonus(null);

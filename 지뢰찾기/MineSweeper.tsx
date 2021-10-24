@@ -27,6 +27,23 @@ export const CODE = {
 } as const; // 속성이 바뀔 일이 없는 코드라면 as const로 모두 readonly
 export type Codes = typeof CODE[keyof typeof CODE];
 
+/*
+  컨텍스트 정의 
+  컴포넌트 간에 공유할 데이터를 명시한다.
+  리듀서 state에서 관리하는 데이터 중 일부를 추려서
+  자식으로 한방에 보내줄 데이터들을 명시한다.
+*/
+interface Context {
+	tableData: Codes[][];
+	halted: boolean;
+	dispatch: Dispatch<ReducerActions>; // 제네릭으로 리듀서 액션 타입 넣어주기
+}
+export const TableContext = createContext<Context>({
+	tableData: [],
+	halted: true,
+	dispatch: () => {},
+});
+
 // 리듀서가 관리하는 state 변수들을 인터페이스 타입으로 정의
 interface ReducerState {
 	tableData: typeof CODE[keyof typeof CODE][][];
@@ -55,8 +72,6 @@ const initialState: ReducerState = {
 };
 
 const plantMine = (row: number, cell: number, mine: number): Codes[][] => {
-	console.log(row, cell, mine);
-
 	// 0 <= x < (row*cell)의 정수 채우기
 	const size = row * cell;
 	const candidate = Array(size)
@@ -92,7 +107,6 @@ const plantMine = (row: number, cell: number, mine: number): Codes[][] => {
 		data[r][c] = CODE.MINE;
 	}
 
-	console.log(data);
 	return data;
 };
 
@@ -126,7 +140,6 @@ const reducer = (
 			const checked: string[] = []; // 탐색 기록들 캐싱
 			let openedCount = 0;
 			const checkArround = (row: number, cell: number) => {
-				console.log('checkArround ', row, cell);
 				/*
           더 이상 탐색을 안 하는 조건
 
@@ -305,22 +318,6 @@ const reducer = (
 	}
 };
 
-/*
-  컨텍스트 정의 
-  컴포넌트 간에 공유할 데이터를 명시한다.
-  리듀서 state에서 관리하는 데이터 중 일부를 추려서
-  자식으로 한방에 보내줄 데이터들을 명시한다.
-*/
-interface Context {
-	tableData: Codes[][];
-	halted: boolean;
-	dispatch: Dispatch<ReducerActions>; // 제네릭으로 리듀서 액션 타입 넣어주기
-}
-export const TableContext = createContext<Context>({
-	tableData: [],
-	halted: true,
-	dispatch: () => {},
-});
 const MineSweeper = () => {
 	const [state, dispatch] = useReducer(reducer, initialState);
 	const { tableData, halted, timer, result } = state;
@@ -339,7 +336,7 @@ const MineSweeper = () => {
 	);
 
 	useEffect(() => {
-		let timer: number;
+		let timer: number = 0;
 		if (halted === false) {
 			/*
         setInterval 함수가 브라우저 환경에서 실행되는지,

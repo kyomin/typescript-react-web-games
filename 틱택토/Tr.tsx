@@ -9,8 +9,6 @@ interface Props {
 }
 
 const Tr: FC<Props> = memo(({ rowData, rowIndex, dispatch }) => {
-	console.log('Tr rendered');
-
 	return (
 		<tr>
 			{Array(rowData.length)

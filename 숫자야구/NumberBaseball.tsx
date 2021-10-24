@@ -27,8 +27,7 @@ const NumberBaseball = () => {
 		(e: React.FormEvent<HTMLFormElement>) => {
 			e.preventDefault();
 			const input = inputEl.current;
-			console.log(`답은 ${answer}`);
-
+			
 			if (value === answer.join('')) {
 				// 바로 맞췄으면!
 				setResult('홈런!');

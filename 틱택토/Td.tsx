@@ -11,8 +11,6 @@ interface Props {
 }
 
 const Td: FC<Props> = memo(({ rowIndex, cellIndex, cellData, dispatch }) => {
-	console.log('Td rendered');
-
 	const onClickTd = useCallback(() => {
 		// 이미 클릭된 cellData라면
 		if (cellData) {
