@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect, useReducer, createContext, useMemo } from 'react';
+import { useEffect, useReducer, createContext, useMemo, Dispatch } from 'react';
 import Table from './Table';
 import Form from './Form';
 
@@ -13,15 +13,23 @@ export const CODE = {
 	FLAG_MINE: -5,
 	CLICKED_MINE: -6,
 	OPENED: 0, // 0 이상이면 다 opened
-};
+} as const; // 속성이 바뀔 일이 없는 코드라면 as const로 모두 readonly
 
-export const TableContext = createContext({
-	tableData: [],
-	halted: true,
-	dispatch: () => {},
-});
+// 리듀서가 관리하는 state 변수들을 인터페이스 타입으로 정의
+interface ReducerState {
+	tableData: number[][];
+	data: {
+		row: number;
+		cell: number;
+		mine: number;
+	};
+	timer: number;
+	result: string;
+	halted: boolean;
+	openedCount: number;
+}
 
-const initialState = {
+const initialState: ReducerState = {
 	tableData: [],
 	data: {
 		row: 0,
@@ -34,13 +42,13 @@ const initialState = {
 	openedCount: 0,
 };
 
-const plantMine = (row, cell, mine) => {
+const plantMine = (row: number, cell: number, mine: number) => {
 	console.log(row, cell, mine);
 
 	// 0 <= x < (row*cell)의 정수 채우기
 	const size = row * cell;
 	const candidate = Array(size)
-		.fill()
+		.fill(null)
 		.map((arr, i) => {
 			return i;
 		});
@@ -56,7 +64,7 @@ const plantMine = (row, cell, mine) => {
 	// code.NORMAL로 셋팅된 2차원 배열 만들기
 	const data = [];
 	for (let i = 0; i < row; i++) {
-		const rowData = [];
+		const rowData: number[] = [];
 		data.push(rowData);
 
 		for (let j = 0; j < cell; j++) {
@@ -76,16 +84,131 @@ const plantMine = (row, cell, mine) => {
 	return data;
 };
 
-/* Reducer Actions */
-export const START_GAME = 'START_GAME';
-export const OPEN_CELL = 'OPEN_CELL';
-export const CLICK_MINE = 'CLICK_MINE';
-export const FLAG_CELL = 'FLAG_CELL';
-export const QUESTION_CELL = 'QUESTION_CELL';
-export const NORMALIZE_CELL = 'NORMALIZE_CELL';
-export const INCREMENT_TIMER = 'INCREMENT_TIMER';
+/* Reducer Actions as 'string literal type' */
+export const START_GAME = 'START_GAME' as const;
+export const OPEN_CELL = 'OPEN_CELL' as const;
+export const CLICK_MINE = 'CLICK_MINE' as const;
+export const FLAG_CELL = 'FLAG_CELL' as const;
+export const QUESTION_CELL = 'QUESTION_CELL' as const;
+export const NORMALIZE_CELL = 'NORMALIZE_CELL' as const;
+export const INCREMENT_TIMER = 'INCREMENT_TIMER' as const;
 
-const reducer = (state, action) => {
+/* 리듀서 액션들 타입으로서 정의 및 액션 크리에이터 정의 */
+interface StartGameAction {
+	type: typeof START_GAME;
+	row: number;
+	cell: number;
+	mine: number;
+}
+
+const startGame = (
+	row: number,
+	cell: number,
+	mine: number
+): StartGameAction => {
+	return {
+		type: START_GAME,
+		row,
+		cell,
+		mine,
+	};
+};
+
+interface OpenCellAction {
+	type: typeof OPEN_CELL;
+	row: number;
+	cell: number;
+}
+
+const openCell = (row: number, cell: number): OpenCellAction => {
+	return {
+		type: OPEN_CELL,
+		row,
+		cell,
+	};
+};
+
+interface ClickMineAction {
+	type: typeof CLICK_MINE;
+	row: number;
+	cell: number;
+}
+
+const clickMine = (row: number, cell: number): ClickMineAction => {
+	return {
+		type: CLICK_MINE,
+		row,
+		cell,
+	};
+};
+
+interface FlagMineAction {
+	type: typeof FLAG_CELL;
+	row: number;
+	cell: number;
+}
+
+const flagMine = (row: number, cell: number): FlagMineAction => {
+	return {
+		type: FLAG_CELL,
+		row,
+		cell,
+	};
+};
+
+interface QuestionCellAction {
+	type: typeof QUESTION_CELL;
+	row: number;
+	cell: number;
+}
+
+const questionCell = (row: number, cell: number): QuestionCellAction => {
+	return {
+		type: QUESTION_CELL,
+		row,
+		cell,
+	};
+};
+
+interface NormalizeCellAction {
+	type: typeof NORMALIZE_CELL;
+	row: number;
+	cell: number;
+}
+
+const normalizeCell = (row: number, cell: number): NormalizeCellAction => {
+	return {
+		type: NORMALIZE_CELL,
+		row,
+		cell,
+	};
+};
+
+interface IncrementTimerAction {
+	type: typeof INCREMENT_TIMER;
+}
+
+const incrementTimer = (): IncrementTimerAction => {
+	return {
+		type: INCREMENT_TIMER,
+	};
+};
+
+/* 리듀서 액션들 하나의 유니온 타입으로 정의 */
+type ReducerActions =
+	| StartGameAction
+	| OpenCellAction
+	| ClickMineAction
+	| FlagMineAction
+	| QuestionCellAction
+	| NormalizeCellAction
+	| IncrementTimerAction;
+
+/* 리듀서 정의 */
+const reducer = (
+	state = initialState,
+	action: ReducerActions
+): ReducerState => {
 	switch (action.type) {
 		case START_GAME: {
 			return {
@@ -282,6 +405,22 @@ const reducer = (state, action) => {
 	}
 };
 
+/*
+  컨텍스트 정의 
+  컴포넌트 간에 공유할 데이터를 명시한다.
+  리듀서 state에서 관리하는 데이터 중 일부를 추려서
+  자식으로 한방에 보내줄 데이터들을 명시한다.
+*/
+interface Context {
+	tableData: number[][];
+	halted: boolean;
+	dispatch: Dispatch<ReducerActions>; // 제네릭으로 리듀서 액션 타입 넣어주기
+}
+export const TableContext = createContext<Context>({
+	tableData: [],
+	halted: true,
+	dispatch: () => {},
+});
 const MineSweeper = () => {
 	const [state, dispatch] = useReducer(reducer, initialState);
 	const { tableData, halted, timer, result } = state;
@@ -291,7 +430,8 @@ const MineSweeper = () => {
     state가 변경될 때마다 리렌더링 되면서 context value 객체가 새로 생성되고,
     그러면 자식 컴포넌트도 자동으로 리렌더링 된다.
     그래서 useMemo로 값을 캐싱해둔다.
-    아래에서는 state.tableData가 바뀔 때에 갱신해 준다.
+    아래에서는 state.tableData와 state.halted가 바뀔 때에 갱신해 준다.
+    dispatch는 바뀔 일이 없어서 안 넣어줘도 된다.
   */
 	const value = useMemo(
 		() => ({ tableData, halted, dispatch }),
@@ -299,9 +439,14 @@ const MineSweeper = () => {
 	);
 
 	useEffect(() => {
-		let timer;
+		let timer: number;
 		if (halted === false) {
-			timer = setInterval(() => {
+			/*
+        setInterval 함수가 브라우저 환경에서 실행되는지,
+        노드 환경에서 실행되는지 모르기 때문에
+        window. 으로 확실한 실행 환경을 명시한다.
+      */
+			timer = window.setInterval(() => {
 				dispatch({ type: INCREMENT_TIMER });
 			}, 1000);
 		} else {
