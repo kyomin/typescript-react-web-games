@@ -1,16 +1,15 @@
 import * as React from 'react';
-import { useMemo, useCallback, useContext, memo } from 'react';
+import { useMemo, useCallback, useContext, FC, memo } from 'react';
+import { TableContext, CODE, Codes } from './MineSweeper';
 import {
-	TableContext,
-	CODE,
-	OPEN_CELL,
-	CLICK_MINE,
-	FLAG_CELL,
-	QUESTION_CELL,
-	NORMALIZE_CELL,
-} from './MineSweeper';
+	openCell,
+	clickMine,
+	flagMine,
+	questionCell,
+	normalizeCell,
+} from './action';
 
-const getTdStyle = (code) => {
+const getTdStyle = (code: Codes) => {
 	switch (code) {
 		case CODE.NORMAL:
 		case CODE.MINE: {
@@ -44,7 +43,7 @@ const getTdStyle = (code) => {
 	}
 };
 
-const getTdText = (code) => {
+const getTdText = (code: Codes) => {
 	switch (code) {
 		case CODE.NORMAL:
 		case CODE.MINE: {
@@ -67,7 +66,12 @@ const getTdText = (code) => {
 	}
 };
 
-const Td = memo(({ rowIndex, cellIndex }) => {
+interface Props {
+	rowIndex: number;
+	cellIndex: number;
+}
+
+const Td: FC<Props> = memo(({ rowIndex, cellIndex }) => {
 	const { tableData, dispatch, halted } = useContext(TableContext);
 
 	const onClickTd = useCallback(() => {
@@ -84,11 +88,11 @@ const Td = memo(({ rowIndex, cellIndex }) => {
 				return;
 			}
 			case CODE.NORMAL: {
-				dispatch({ type: OPEN_CELL, row: rowIndex, cell: cellIndex });
+				dispatch(openCell(rowIndex, cellIndex));
 				return;
 			}
 			case CODE.MINE: {
-				dispatch({ type: CLICK_MINE, row: rowIndex, cell: cellIndex });
+				dispatch(clickMine(rowIndex, cellIndex));
 				return;
 			}
 			default: {
@@ -98,7 +102,7 @@ const Td = memo(({ rowIndex, cellIndex }) => {
 	}, [tableData[rowIndex][cellIndex], halted]);
 
 	const onRightClickTd = useCallback(
-		(e) => {
+		(e: React.MouseEvent) => {
 			e.preventDefault();
 
 			if (halted) {
@@ -108,17 +112,17 @@ const Td = memo(({ rowIndex, cellIndex }) => {
 			switch (tableData[rowIndex][cellIndex]) {
 				case CODE.NORMAL:
 				case CODE.MINE: {
-					dispatch({ type: FLAG_CELL, row: rowIndex, cell: cellIndex });
+					dispatch(flagMine(rowIndex, cellIndex));
 					return;
 				}
 				case CODE.FLAG_MINE:
 				case CODE.FLAG: {
-					dispatch({ type: QUESTION_CELL, row: rowIndex, cell: cellIndex });
+					dispatch(questionCell(rowIndex, cellIndex));
 					return;
 				}
 				case CODE.QUESTION_MINE:
 				case CODE.QUESTION: {
-					dispatch({ type: NORMALIZE_CELL, row: rowIndex, cell: cellIndex });
+					dispatch(normalizeCell(rowIndex, cellIndex));
 					return;
 				}
 				default: {

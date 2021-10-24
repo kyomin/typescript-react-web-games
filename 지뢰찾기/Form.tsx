@@ -1,23 +1,32 @@
 import * as React from 'react';
 import { useState, useCallback, useContext, memo } from 'react';
-import { TableContext, START_GAME } from './MineSweeper';
+import { TableContext } from './MineSweeper';
+import { startGame } from './action';
 
+/*
+  props를 받는 자식 컴포넌트는 보통 props 자체는 안 바뀌어도
+  부모에서 state가 바뀌어 재렌더링될 때 강제적으로 자식도 바뀌는 것을 방지하기 위해
+  memo로 감싸준다.
+  그래야 props를 캐싱해둬서 여기서 사용하는 props가 바뀔 때만 렌더링하게 해준다.
+
+  하지만 여기서는 따로 props를 받지 않으므로 memo로 감쌀 필요는 없다.
+*/
 const Form = memo(() => {
 	const [row, setRow] = useState(10);
 	const [cell, setCell] = useState(10);
 	const [mine, setMine] = useState(20);
 	const { dispatch } = useContext(TableContext);
 
-	const onChangeRow = useCallback((e) => {
-		setRow(e.target.value);
+	const onChangeRow = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		setRow(Number(e.target.value));
 	}, []);
 
-	const onChangeCell = useCallback((e) => {
-		setCell(e.target.value);
+	const onChangeCell = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		setCell(Number(e.target.value));
 	}, []);
 
-	const onChangeMine = useCallback((e) => {
-		setMine(e.target.value);
+	const onChangeMine = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		setMine(Number(e.target.value));
 	}, []);
 
 	const onClickBtn = useCallback(() => {
@@ -27,7 +36,7 @@ const Form = memo(() => {
 			return;
 		}
 
-		dispatch({ type: START_GAME, row, cell, mine });
+		dispatch(startGame(row, cell, mine));
 	}, [row, cell, mine]);
 
 	return (

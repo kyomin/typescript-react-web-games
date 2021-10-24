@@ -2,6 +2,17 @@ import * as React from 'react';
 import { useEffect, useReducer, createContext, useMemo, Dispatch } from 'react';
 import Table from './Table';
 import Form from './Form';
+import {
+	ReducerActions,
+	START_GAME,
+	OPEN_CELL,
+	CLICK_MINE,
+	FLAG_CELL,
+	QUESTION_CELL,
+	NORMALIZE_CELL,
+	INCREMENT_TIMER,
+	incrementTimer,
+} from './action';
 
 // table의 상수의 의미를 코드로 정리
 export const CODE = {
@@ -14,10 +25,11 @@ export const CODE = {
 	CLICKED_MINE: -6,
 	OPENED: 0, // 0 이상이면 다 opened
 } as const; // 속성이 바뀔 일이 없는 코드라면 as const로 모두 readonly
+export type Codes = typeof CODE[keyof typeof CODE];
 
 // 리듀서가 관리하는 state 변수들을 인터페이스 타입으로 정의
 interface ReducerState {
-	tableData: number[][];
+	tableData: typeof CODE[keyof typeof CODE][][];
 	data: {
 		row: number;
 		cell: number;
@@ -42,7 +54,7 @@ const initialState: ReducerState = {
 	openedCount: 0,
 };
 
-const plantMine = (row: number, cell: number, mine: number) => {
+const plantMine = (row: number, cell: number, mine: number): Codes[][] => {
 	console.log(row, cell, mine);
 
 	// 0 <= x < (row*cell)의 정수 채우기
@@ -62,9 +74,9 @@ const plantMine = (row: number, cell: number, mine: number) => {
 	}
 
 	// code.NORMAL로 셋팅된 2차원 배열 만들기
-	const data = [];
+	const data: Codes[][] = [];
 	for (let i = 0; i < row; i++) {
-		const rowData: number[] = [];
+		const rowData: Codes[] = [];
 		data.push(rowData);
 
 		for (let j = 0; j < cell; j++) {
@@ -83,126 +95,6 @@ const plantMine = (row: number, cell: number, mine: number) => {
 	console.log(data);
 	return data;
 };
-
-/* Reducer Actions as 'string literal type' */
-export const START_GAME = 'START_GAME' as const;
-export const OPEN_CELL = 'OPEN_CELL' as const;
-export const CLICK_MINE = 'CLICK_MINE' as const;
-export const FLAG_CELL = 'FLAG_CELL' as const;
-export const QUESTION_CELL = 'QUESTION_CELL' as const;
-export const NORMALIZE_CELL = 'NORMALIZE_CELL' as const;
-export const INCREMENT_TIMER = 'INCREMENT_TIMER' as const;
-
-/* 리듀서 액션들 타입으로서 정의 및 액션 크리에이터 정의 */
-interface StartGameAction {
-	type: typeof START_GAME;
-	row: number;
-	cell: number;
-	mine: number;
-}
-
-const startGame = (
-	row: number,
-	cell: number,
-	mine: number
-): StartGameAction => {
-	return {
-		type: START_GAME,
-		row,
-		cell,
-		mine,
-	};
-};
-
-interface OpenCellAction {
-	type: typeof OPEN_CELL;
-	row: number;
-	cell: number;
-}
-
-const openCell = (row: number, cell: number): OpenCellAction => {
-	return {
-		type: OPEN_CELL,
-		row,
-		cell,
-	};
-};
-
-interface ClickMineAction {
-	type: typeof CLICK_MINE;
-	row: number;
-	cell: number;
-}
-
-const clickMine = (row: number, cell: number): ClickMineAction => {
-	return {
-		type: CLICK_MINE,
-		row,
-		cell,
-	};
-};
-
-interface FlagMineAction {
-	type: typeof FLAG_CELL;
-	row: number;
-	cell: number;
-}
-
-const flagMine = (row: number, cell: number): FlagMineAction => {
-	return {
-		type: FLAG_CELL,
-		row,
-		cell,
-	};
-};
-
-interface QuestionCellAction {
-	type: typeof QUESTION_CELL;
-	row: number;
-	cell: number;
-}
-
-const questionCell = (row: number, cell: number): QuestionCellAction => {
-	return {
-		type: QUESTION_CELL,
-		row,
-		cell,
-	};
-};
-
-interface NormalizeCellAction {
-	type: typeof NORMALIZE_CELL;
-	row: number;
-	cell: number;
-}
-
-const normalizeCell = (row: number, cell: number): NormalizeCellAction => {
-	return {
-		type: NORMALIZE_CELL,
-		row,
-		cell,
-	};
-};
-
-interface IncrementTimerAction {
-	type: typeof INCREMENT_TIMER;
-}
-
-const incrementTimer = (): IncrementTimerAction => {
-	return {
-		type: INCREMENT_TIMER,
-	};
-};
-
-/* 리듀서 액션들 하나의 유니온 타입으로 정의 */
-type ReducerActions =
-	| StartGameAction
-	| OpenCellAction
-	| ClickMineAction
-	| FlagMineAction
-	| QuestionCellAction
-	| NormalizeCellAction
-	| IncrementTimerAction;
 
 /* 리듀서 정의 */
 const reducer = (
@@ -231,13 +123,19 @@ const reducer = (
 				tableData[i] = [...state.tableData[i]];
 			});
 
-			const checked = []; // 탐색 기록들 캐싱
+			const checked: string[] = []; // 탐색 기록들 캐싱
 			let openedCount = 0;
-			const checkArround = (row, cell) => {
+			const checkArround = (row: number, cell: number) => {
 				console.log('checkArround ', row, cell);
-				// 더 이상 탐색을 안 하는 조건
+				/*
+          더 이상 탐색을 안 하는 조건
+
+          as Codes[]로 강제 형변환을 하지 않는다면,
+          개수가 맞지 않아 타입이 맞지 않는다고 판단해버린다.
+          그래서 컴파일러가 해석할 수 있도록 상위 타입으로 강제 형변환을 한다.
+        */
 				if (
-					[CODE.FLAG_MINE, CODE.FLAG, CODE.QUESTION_MINE].includes(
+					([CODE.FLAG_MINE, CODE.FLAG, CODE.QUESTION_MINE] as Codes[]).includes(
 						tableData[row][cell]
 					)
 				) {
@@ -261,7 +159,7 @@ const reducer = (
 
 				openedCount += 1;
 				// 상하좌우 및 대각선 지뢰 개수 검사 후 표시 작업
-				let around = [];
+				let around: Codes[] = [];
 				if (tableData[row - 1]) {
 					// 윗 칸이 존재하는 경우
 					around = around.concat(
@@ -287,8 +185,10 @@ const reducer = (
 				}
 
 				const count = around.filter((v) =>
-					[CODE.MINE, CODE.FLAG_MINE, CODE.QUESTION_MINE].includes(v)
-				).length;
+					([CODE.MINE, CODE.FLAG_MINE, CODE.QUESTION_MINE] as Codes[]).includes(
+						v
+					)
+				).length as Codes;
 				tableData[row][cell] = count;
 
 				// 주변 모든 칸이 빈 칸이면 재귀적으로 열어주기
@@ -412,7 +312,7 @@ const reducer = (
   자식으로 한방에 보내줄 데이터들을 명시한다.
 */
 interface Context {
-	tableData: number[][];
+	tableData: Codes[][];
 	halted: boolean;
 	dispatch: Dispatch<ReducerActions>; // 제네릭으로 리듀서 액션 타입 넣어주기
 }
@@ -447,7 +347,7 @@ const MineSweeper = () => {
         window. 으로 확실한 실행 환경을 명시한다.
       */
 			timer = window.setInterval(() => {
-				dispatch({ type: INCREMENT_TIMER });
+				dispatch(incrementTimer());
 			}, 1000);
 		} else {
 			clearInterval(timer);
