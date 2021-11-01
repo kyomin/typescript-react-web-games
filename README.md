@@ -116,4 +116,18 @@ React.js에 TypeScript를 적용해 웹 기반의 간단한 여러 게임들을 
 
 ### 게임 패배   
 
-![지뢰찾기 - 게임 패배](https://user-images.githubusercontent.com/46395776/136698813-447eccf9-e06d-4a79-8ff7-bbf78c7033c2.png)
+![지뢰찾기 - 게임 패배](https://user-images.githubusercontent.com/46395776/136698813-447eccf9-e06d-4a79-8ff7-bbf78c7033c2.png)   
+   
+   
+   #
+# 게임 라우터   
+
+리액트 라우터를 이용해서 여러 게임들을 라우팅하여 즐길 수 있도록 작업하였습니다.   
+
+### 라우터 - 로또   
+
+![게임 라우터 로또](https://user-images.githubusercontent.com/46395776/139701980-ce22dc8f-d60b-48ef-a66a-97464e4c5557.png)   
+
+### 라우터 - 지뢰찾기   
+
+![게임 라우터 지뢰](https://user-images.githubusercontent.com/46395776/139702038-dfd4163f-ac5e-46f6-9961-f0bc8a459dcb.png)
