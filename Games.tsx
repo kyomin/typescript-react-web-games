@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { BrowserRouter, Link, Route, Switch } from 'react-router-dom';
-import GameMatcherClass from './GameMatcherClass';
+import GameMatcher from './GameMatcher';
 
 const Games = () => {
 	return (
@@ -12,12 +12,18 @@ const Games = () => {
 				&nbsp;
 				<Link to='/game/lotto-generator'>로또생성기</Link>
 				&nbsp;
+        <Link to='/game/response-check'>반응속도체크</Link>
+				&nbsp;
+        <Link to='/game/tic-tac-toe'>틱택토</Link>
+				&nbsp;
+        <Link to='/game/mine-sweeper'>지뢰찾기</Link>
+				&nbsp;
 				<Link to='/game/index'>게임 매쳐</Link>
 			</div>
 			<div>
 				<Switch>
-					<Route exact path='/' component={GameMatcherClass} />
-					<Route path='/game/:name' render={(props) => <GameMatcherClass {...props} />} />
+					<Route exact path='/' render={() => <GameMatcher />} />
+					<Route path='/game/:name' render={() => <GameMatcher />} />
 				</Switch>
 			</div>
 		</BrowserRouter>
