@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Component } from 'react';
 import { connect } from 'react-redux';
+import { login, logout } from './actions/user';
 
 class App extends Component {
 	onLogin = () => {
