@@ -44,7 +44,7 @@ export const loginFailure = (error: unknown): LoginFailureAction => {
 	};
 };
 
-interface ThunkDispatch {
+export interface ThunkDispatch {
 	(thunkAction: ThunckAction): void;
 	<A>(action: A): A;
 	<TAction>(action: TAction | ThunckAction): TAction;

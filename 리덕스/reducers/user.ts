@@ -1,3 +1,4 @@
+import { produce } from 'immer';
 import {
 	LOGIN_REQUEST,
 	LOGIN_SUCCESS,
@@ -29,23 +30,32 @@ type UserReducerActions =
 
 // 액션을 통해서 새로운 state로 반환해주는 함수
 const userReducer = (prevState = initialState, action: UserReducerActions) => {
-	switch (action.type) {
-		case LOGIN_REQUEST: {
+	return produce(prevState, (draft) => {
+		switch (action.type) {
+			case LOGIN_REQUEST: {
+				draft.data = null;
+				draft.isLoggingIn = true;
+				break;
+			}
+			case LOGIN_SUCCESS: {
+				draft.data = action.data;
+				draft.isLoggingIn = false;
+				break;
+			}
+			case LOGIN_FAILURE: {
+				draft.data = null;
+				draft.isLoggingIn = false;
+				break;
+			}
+			case LOGOUT: {
+				draft.data = null;
+				break;
+			}
+			default: {
+				break;
+			}
 		}
-		case LOGIN_SUCCESS: {
-		}
-		case LOGIN_FAILURE: {
-		}
-		case LOGOUT: {
-			return {
-				...prevState,
-				data: null,
-			};
-		}
-		default: {
-			return prevState;
-		}
-	}
+	});
 };
 
 export default userReducer;

@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { Component } from 'react';
-import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import { login, logout } from './actions/user';
+import { login, logout, ThunkDispatch } from './actions/user';
 import { RootState } from './reducers';
 import { UserState } from './reducers/user';
 
@@ -12,14 +11,14 @@ interface StateToProps {
 }
 
 interface DispatchToProps {
-	dispatchLogin: ({ id, password }: { id: string; password: string }) => void;
+	dispatchLogin: ({ id, password }: { id: number; password: string }) => void;
 	dispatchLogout: () => void;
 }
 
 class App extends Component<StateToProps & DispatchToProps> {
 	onLogin = () => {
 		this.props.dispatchLogin({
-			id: 'kyomin',
+			id: 1,
 			password: '1234',
 		});
 	};
@@ -30,6 +29,7 @@ class App extends Component<StateToProps & DispatchToProps> {
 
 	render() {
 		const { user } = this.props;
+		console.log(user);
 		return (
 			<div>
 				{user.isLoggingIn ? (
@@ -53,8 +53,8 @@ const mapStateToProps = (state: RootState) => ({
 	user: state.user,
 });
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-	dispatchLogin: (data: { id: string; password: string }) =>
+const mapDispatchToProps = (dispatch: ThunkDispatch) => ({
+	dispatchLogin: (data: { id: number; password: string }) =>
 		dispatch(login(data)),
 	dispatchLogout: () => dispatch(logout()),
 });
