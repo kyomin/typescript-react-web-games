@@ -1,9 +1,22 @@
 import * as React from 'react';
 import { Component } from 'react';
+import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import { login, logout } from './actions/user';
+import { RootState } from './reducers';
+import { UserState } from './reducers/user';
 
-class App extends Component {
+// 성격에 따라 Props 인터페이스를 나눠서 정의할 수 있다.
+interface StateToProps {
+	user: UserState;
+}
+
+interface DispatchToProps {
+	dispatchLogin: ({ id, password }: { id: string; password: string }) => void;
+	dispatchLogout: () => void;
+}
+
+class App extends Component<StateToProps & DispatchToProps> {
 	onLogin = () => {
 		this.props.dispatchLogin({
 			id: 'kyomin',
@@ -36,13 +49,13 @@ class App extends Component {
 	}
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state: RootState) => ({
 	user: state.user,
-	posts: state.posts,
 });
 
-const mapDispatchToProps = (dispatch) => ({
-	dispatchLogin: (data) => dispatch(login(data)),
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+	dispatchLogin: (data: { id: string; password: string }) =>
+		dispatch(login(data)),
 	dispatchLogout: () => dispatch(logout()),
 });
 
