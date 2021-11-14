@@ -1,17 +1,29 @@
 import * as React from 'react';
-import { useCallback } from 'react';
+import { useCallback, FC } from 'react';
 import { useLocalStore, useObserver } from 'mobx-react';
 import { action } from 'mobx';
 import { userStore, postStore } from './store';
 
+interface LocalStore {
+	name: string;
+	password: string;
+	onChangeName: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	onChangePassword: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
 const App: FC = () => {
-	const state = useLocalStore(() => ({
+	const state = useLocalStore<LocalStore>(() => ({
 		name: '',
 		password: '',
-		onChangeName: action(function (e) {
+		onChangeName: action(function (
+			this: LocalStore,
+			e: React.ChangeEvent<HTMLInputElement>
+		) {
 			this.name = e.target.value;
 		}),
-		onChangePassword: action(function (e) {
+		onChangePassword: action(function (
+			this: LocalStore,
+			e: React.ChangeEvent<HTMLInputElement>
+		) {
 			this.password = e.target.value;
 		}),
 	}));
@@ -41,17 +53,21 @@ const App: FC = () => {
 			) : (
 				<button onClick={onLogout}>로그아웃</button>
 			)}
-			<div>
-				<label htmlFor='name'>이름</label>
-				<input id='name' value={state.name} onChange={state.onChangeName} />
+			{!userStore.data ? (
+				<div>
+					<label htmlFor='name'>이름</label>
+					<input id='name' value={state.name} onChange={state.onChangeName} />
 
-				<label htmlFor='password'>비밀번호</label>
-				<input
-					id='password'
-					value={state.password}
-					onChange={state.onChangePassword}
-				/>
-			</div>
+					<label htmlFor='password'>비밀번호</label>
+					<input
+						id='password'
+						value={state.password}
+						onChange={state.onChangePassword}
+					/>
+				</div>
+			) : (
+				''
+			)}
 		</div>
 	));
 };

@@ -7,7 +7,7 @@ import { StoreProvider } from './Context';
 const Hot = hot(App); // HOC
 
 ReactDom.render(
-	<StoreProvider store={store}>
+	<StoreProvider>
 		<Hot />
 	</StoreProvider>,
 	document.querySelector('#root')
